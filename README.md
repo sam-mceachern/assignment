@@ -1,0 +1,1 @@
+~/go/bin/oapi-codegen -package wex wex/wex.yaml > ./wex/wex.gen.go

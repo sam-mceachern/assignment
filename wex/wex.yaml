@@ -1,0 +1,55 @@
+openapi: 3.1.0
+info:
+  title: wex
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /storeTransaction:
+    post:
+      summary: ''
+      operationId: post-storeTransaction
+      responses:
+        '200':
+          $ref: '#/components/responses/storeTransactionResponse'
+      description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/storeTransactionRequest'
+  /getTransaction:
+    post:
+      summary: ''
+      operationId: post-getTransaction
+      responses:
+        '200':
+          description: OK
+components:
+  schemas: {}
+  requestBodies:
+    storeTransactionRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              description:
+                type: string
+              transactionDate:
+                type: string
+              purchaseAmount:
+                type: number
+  responses:
+    storeTransactionResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              description:
+                type: string
+              transactionDate:
+                type: string
+              purchaseAmount:
+                type: number
