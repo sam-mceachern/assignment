@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,17 +21,28 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ErrorResponse defines model for errorResponse.
-type ErrorResponse struct {
-	Message string `json:"message"`
-}
-
-// StoreTransactionResponse defines model for storeTransactionResponse.
-type StoreTransactionResponse struct {
+// Transaction defines model for Transaction.
+type Transaction struct {
+	ID              string  `json:"ID"`
 	Description     string  `json:"description"`
-	Id              string  `json:"id"`
 	PurchaseAmount  float32 `json:"purchaseAmount"`
 	TransactionDate string  `json:"transactionDate"`
+}
+
+// ErrorResponse defines model for errorResponse.
+type ErrorResponse struct {
+	Description string `json:"description"`
+}
+
+// GetTransactionResponse defines model for getTransactionResponse.
+type GetTransactionResponse = Transaction
+
+// StoreTransactionResponse defines model for storeTransactionResponse.
+type StoreTransactionResponse = Transaction
+
+// GetTransactionRequest defines model for getTransactionRequest.
+type GetTransactionRequest struct {
+	ID string `json:"ID"`
 }
 
 // StoreTransactionRequest defines model for storeTransactionRequest.
@@ -40,12 +52,20 @@ type StoreTransactionRequest struct {
 	TransactionDate string  `json:"transactionDate"`
 }
 
+// PostGetTransactionJSONBody defines parameters for PostGetTransaction.
+type PostGetTransactionJSONBody struct {
+	ID string `json:"ID"`
+}
+
 // PostStoreTransactionJSONBody defines parameters for PostStoreTransaction.
 type PostStoreTransactionJSONBody struct {
 	Description     string  `json:"description"`
 	PurchaseAmount  float32 `json:"purchaseAmount"`
 	TransactionDate string  `json:"transactionDate"`
 }
+
+// PostGetTransactionJSONRequestBody defines body for PostGetTransaction for application/json ContentType.
+type PostGetTransactionJSONRequestBody PostGetTransactionJSONBody
 
 // PostStoreTransactionJSONRequestBody defines body for PostStoreTransaction for application/json ContentType.
 type PostStoreTransactionJSONRequestBody PostStoreTransactionJSONBody
@@ -123,8 +143,10 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostGetTransaction request
-	PostGetTransaction(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostGetTransactionWithBody request with any body
+	PostGetTransactionWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostGetTransaction(ctx context.Context, body PostGetTransactionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostStoreTransactionWithBody request with any body
 	PostStoreTransactionWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -132,8 +154,20 @@ type ClientInterface interface {
 	PostStoreTransaction(ctx context.Context, body PostStoreTransactionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostGetTransaction(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostGetTransactionRequest(c.Server)
+func (c *Client) PostGetTransactionWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetTransactionRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGetTransaction(ctx context.Context, body PostGetTransactionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetTransactionRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -168,8 +202,19 @@ func (c *Client) PostStoreTransaction(ctx context.Context, body PostStoreTransac
 	return c.Client.Do(req)
 }
 
-// NewPostGetTransactionRequest generates requests for PostGetTransaction
-func NewPostGetTransactionRequest(server string) (*http.Request, error) {
+// NewPostGetTransactionRequest calls the generic PostGetTransaction builder with application/json body
+func NewPostGetTransactionRequest(server string, body PostGetTransactionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostGetTransactionRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostGetTransactionRequestWithBody generates requests for PostGetTransaction with any type of body
+func NewPostGetTransactionRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -187,10 +232,12 @@ func NewPostGetTransactionRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -278,8 +325,10 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostGetTransactionWithResponse request
-	PostGetTransactionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error)
+	// PostGetTransactionWithBodyWithResponse request with any body
+	PostGetTransactionWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error)
+
+	PostGetTransactionWithResponse(ctx context.Context, body PostGetTransactionJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error)
 
 	// PostStoreTransactionWithBodyWithResponse request with any body
 	PostStoreTransactionWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStoreTransactionResponse, error)
@@ -290,6 +339,11 @@ type ClientWithResponsesInterface interface {
 type PostGetTransactionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *GetTransactionResponse
+	JSON400      *ErrorResponse
+	XML400       *ErrorResponse
+	JSON500      *ErrorResponse
+	XML500       *ErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -313,7 +367,9 @@ type PostStoreTransactionResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *StoreTransactionResponse
 	JSON400      *ErrorResponse
+	XML400       *ErrorResponse
 	JSON500      *ErrorResponse
+	XML500       *ErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -332,9 +388,17 @@ func (r PostStoreTransactionResponse) StatusCode() int {
 	return 0
 }
 
-// PostGetTransactionWithResponse request returning *PostGetTransactionResponse
-func (c *ClientWithResponses) PostGetTransactionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error) {
-	rsp, err := c.PostGetTransaction(ctx, reqEditors...)
+// PostGetTransactionWithBodyWithResponse request with arbitrary body returning *PostGetTransactionResponse
+func (c *ClientWithResponses) PostGetTransactionWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error) {
+	rsp, err := c.PostGetTransactionWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetTransactionResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostGetTransactionWithResponse(ctx context.Context, body PostGetTransactionJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetTransactionResponse, error) {
+	rsp, err := c.PostGetTransaction(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +433,44 @@ func ParsePostGetTransactionResponse(rsp *http.Response) (*PostGetTransactionRes
 	response := &PostGetTransactionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GetTransactionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "xml") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := xml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.XML400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "xml") && rsp.StatusCode == 500:
+		var dest ErrorResponse
+		if err := xml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.XML500 = &dest
+
 	}
 
 	return response, nil
@@ -408,6 +510,20 @@ func ParsePostStoreTransactionResponse(rsp *http.Response) (*PostStoreTransactio
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "xml") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := xml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.XML400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "xml") && rsp.StatusCode == 500:
+		var dest ErrorResponse
+		if err := xml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.XML500 = &dest
 
 	}
 
@@ -483,13 +599,14 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7xUwW4TMRD9FTRwtOqFwsU3EAghDqDCrerB9U6zrnY9ZjwLraL9dzTeRO0mKa0IIifH",
-	"++b5zXv2rCHQkClhkgJuDYw/RizyjtqIdaMIMX5nn4oPEimdzQD9FCgJprr0OfcxeAXY60KpVoYOB6+r",
-	"zJSRZcPYYgkcs2L1r9xmBAdFOKYVTAbyyKHzBd8ONM7sG0gah0tkhcidnvde8ADNZGorkbEFd744c798",
-	"78wLs+Wjy2sMApP+lLJkSmXuA5mJzzY7R/gxYCl+9YQmtsBD6szSVvhw44fc47OtYnVtP8qjtT+WZWz/",
-	"W8SxBfMvcn7cScXEdEVVU5Re63/hDRj4iVzmqpcnjXZBGZPPERycnuiWgeylq9bZFcq9MKq3ND8sdbj6",
-	"/6kFB1+pyMclducmvmqavTDgy2eYL63dzf3PR33bRZt7Q+FWa14wXoGD5/ZudNjF3LAPDY3psPDDhBuc",
-	"ffDaTgZeP4Vg+VAnA2/+omr2siBrxuDO1zByDw46keys7Sn4vqMi7rRpGpgupt8BAAD//3gnEUNaBQAA",
+	"H4sIAAAAAAAC/8RVT2/bPgz9Kj/wt6NQeet20W1DhiG3odut6EF12FqFLWoSvaUI/N0Hyi5qJ3ZXGN16",
+	"CQzqkXx8/JMDlNQE8ug5gTlAxB8tJv5EO4fZcIv8PVqfbMmO/EX/LA8leUafP20ItSutAPRdIi+2VFbY",
+	"WPkKkQJGHuJtN/LL9wHBQOLo/C10ncqJXcQdmEvBXKkHDF3fYcnQdYJKTBFflM8OUxldEOwMMQWhjWVl",
+	"E35sqO2jDxDfNtcYBcKPfDaW8c/1jXOeup/knNUih0yBfOrrwBgpXgyWv6bHE4XMsFSTzPumniZ+E/EG",
+	"DPyvH0dQ969Jj3oMudgJL/i8t02o8b8HCaQNx5O6QooXZnQ6ra/NSUj1vhJ67P68RVWvsi/bDag1S+O4",
+	"lqjjMmdWSYHzN5RZDA6/cA8KfmJMvY5vzwrhTQG9DQ4MnJ+JSUGwXGWx9HT4sprU3yXRNPd2uwMDXynx",
+	"lylWjY7u/VLHJ3dZzx/l45PwriiWww04vbA1nYL3z3Gfnp1OwYcVXrkJ+nhbnhbx2zF6hYxL/yarhFxc",
+	"9n8tpew4RpleMJcHaGMNBirmYLSuqbR1RYnNeVEU0F11vwMAAP//KIU03QEIAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
