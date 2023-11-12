@@ -34,7 +34,15 @@ func (c *Client) StoreTransaction(ctx context.Context, transaction models.Transa
 }
 
 func (c *Client) GetTransactionByID(ctx context.Context, id string) (models.Transaction, error) {
-	return models.Transaction{}, nil
+	data := c.storage[id]
+
+	var transaction models.Transaction
+	err := json.Unmarshal(data, &transaction)
+	if err != nil {
+		return models.Transaction{}, fmt.Errorf("failed to unmarshal transaction from json: %v", err)
+	}
+
+	return transaction, nil
 }
 
 func generateID() string {

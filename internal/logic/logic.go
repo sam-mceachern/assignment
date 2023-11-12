@@ -20,3 +20,7 @@ func NewClient(storage storage.Storage) *Client {
 func (c *Client) StoreTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error) {
 	return c.storage.StoreTransaction(ctx, transaction)
 }
+
+func (c *Client) GetTransaction(ctx context.Context, ID string) (models.Transaction, error) {
+	return c.storage.GetTransactionByID(ctx, ID)
+}

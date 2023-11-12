@@ -24,7 +24,28 @@ func NewServer(logicClient *logic.Client) *Server {
 
 // (POST /getTransaction)
 func (s *Server) PostGetTransaction(ctx echo.Context) error {
-	return nil
+	// extract the request
+	defer ctx.Request().Body.Close()
+	data, err := io.ReadAll(ctx.Request().Body)
+	if err != nil {
+		log.Info().Msgf("failed to read request body data: %v", err)
+		return writeErrorResponse(ctx.Response(), http.StatusBadRequest, "failed to read request body")
+	}
+
+	var req wex.GetTransactionRequest
+	err = json.Unmarshal(data, &req)
+	if err != nil {
+		log.Info().Msgf("failed to unmarshal transaction: %v", err)
+		return writeErrorResponse(ctx.Response(), http.StatusBadRequest, "failed to unmarshal data into request body")
+	}
+
+	transaction, err := s.logicClient.GetTransaction(ctx.Request().Context(), req.ID)
+	if err != nil {
+		log.Info().Msgf("failed to storee transaction: %v", err)
+		return writeErrorResponse(ctx.Response(), http.StatusInternalServerError, "internal error")
+	}
+
+	return writeResponse(ctx.Response(), http.StatusCreated, TransactionToStoreTransactionResponse(transaction))
 }
 
 func StoreTransactionRequestToTransaction(req wex.StoreTransactionRequest) (models.Transaction, error) {
@@ -42,7 +63,7 @@ func StoreTransactionRequestToTransaction(req wex.StoreTransactionRequest) (mode
 
 func TransactionToStoreTransactionResponse(transaction models.Transaction) wex.StoreTransactionResponse {
 	return wex.StoreTransactionResponse{
-		Id:              *transaction.ID,
+		ID:              *transaction.ID,
 		Description:     transaction.Description,
 		TransactionDate: transaction.TransactionDate.String(),
 		PurchaseAmount:  float32(transaction.PurchaseAmount),
@@ -103,7 +124,7 @@ func writeErrorResponse(w http.ResponseWriter, status int, message string) error
 
 	w.Header().Set("Content-Type", "application/json")
 	errorResponse := wex.ErrorResponse{
-		Message: message,
+		Description: message,
 	}
 	errorData, err := json.Marshal(errorResponse)
 	if err != nil {
