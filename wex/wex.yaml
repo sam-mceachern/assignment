@@ -12,6 +12,10 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/storeTransactionResponse'
+        '400':
+          $ref: '#/components/responses/errorResponse'
+        '500':
+          $ref: '#/components/responses/errorResponse'
       description: ''
       requestBody:
         $ref: '#/components/requestBodies/storeTransactionRequest'
@@ -53,3 +57,14 @@ components:
                 type: string
               purchaseAmount:
                 type: number
+    errorResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
