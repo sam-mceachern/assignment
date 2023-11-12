@@ -27,24 +27,24 @@ type ErrorResponse struct {
 
 // StoreTransactionResponse defines model for storeTransactionResponse.
 type StoreTransactionResponse struct {
-	Description     *string  `json:"description,omitempty"`
-	Id              *string  `json:"id,omitempty"`
-	PurchaseAmount  *float32 `json:"purchaseAmount,omitempty"`
-	TransactionDate *string  `json:"transactionDate,omitempty"`
+	Description     string  `json:"description"`
+	Id              string  `json:"id"`
+	PurchaseAmount  float32 `json:"purchaseAmount"`
+	TransactionDate string  `json:"transactionDate"`
 }
 
 // StoreTransactionRequest defines model for storeTransactionRequest.
 type StoreTransactionRequest struct {
-	Description     *string  `json:"description,omitempty"`
-	PurchaseAmount  *float32 `json:"purchaseAmount,omitempty"`
-	TransactionDate *string  `json:"transactionDate,omitempty"`
+	Description     string  `json:"description"`
+	PurchaseAmount  float32 `json:"purchaseAmount"`
+	TransactionDate string  `json:"transactionDate"`
 }
 
 // PostStoreTransactionJSONBody defines parameters for PostStoreTransaction.
 type PostStoreTransactionJSONBody struct {
-	Description     *string  `json:"description,omitempty"`
-	PurchaseAmount  *float32 `json:"purchaseAmount,omitempty"`
-	TransactionDate *string  `json:"transactionDate,omitempty"`
+	Description     string  `json:"description"`
+	PurchaseAmount  float32 `json:"purchaseAmount"`
+	TransactionDate string  `json:"transactionDate"`
 }
 
 // PostStoreTransactionJSONRequestBody defines body for PostStoreTransaction for application/json ContentType.
@@ -483,13 +483,13 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7yTwW7UQAyGXwUZjlEnULjMDQRCiAOocKt6mE7czVTJeLAdaLXKuyNnFtrd7lLESuQ0",
-	"cT47//y21xBpLJQxq4BfA+O3CUXfUJdwCYgS41cOWULURPmsAvYpUlbMyzGUMqQYDHDXQnnJjD2OwU6F",
-	"qSDrpmKHEjkVY+1VbwuCB1FOeQVzA2Xi2AfB1yNNtfoGydN4iWyI3ul5GxT3lDGoRujyGqPCbE8DjFIo",
-	"S1WCzMRnm8gRNxpRJKwOyDBHE2MH/vw3eLFHXbNtDLy7CWMZ8MkvxXbvh804Wvtj3Ujd/23S4zYYk/IV",
-	"LQWTDpb/A2+gge/IUrOen7QmgQrmUBJ4OD2xUAMlaL/c261Q7zm5GEN1rs2exbwPHXj4TKLvt9mdMXrR",
-	"tg+chE8foU6c223an3/1ZZdu7u3kreU8Y7wCD0/d3ea6rbV1h3Z23i98f8EN5w7O3NzAy78psL1lcwOv",
-	"/iGreinI1mPw52uYeAAPvWrxzg0Uw9CTqD9t2xbmi/lnAAAA//9O2b8c2QQAAA==",
+	"H4sIAAAAAAAC/7xUwW4TMRD9FTRwtOqFwsU3EAghDqDCrerB9U6zrnY9ZjwLraL9dzTeRO0mKa0IIifH",
+	"++b5zXv2rCHQkClhkgJuDYw/RizyjtqIdaMIMX5nn4oPEimdzQD9FCgJprr0OfcxeAXY60KpVoYOB6+r",
+	"zJSRZcPYYgkcs2L1r9xmBAdFOKYVTAbyyKHzBd8ONM7sG0gah0tkhcidnvde8ADNZGorkbEFd744c798",
+	"78wLs+Wjy2sMApP+lLJkSmXuA5mJzzY7R/gxYCl+9YQmtsBD6szSVvhw44fc47OtYnVtP8qjtT+WZWz/",
+	"W8SxBfMvcn7cScXEdEVVU5Re63/hDRj4iVzmqpcnjXZBGZPPERycnuiWgeylq9bZFcq9MKq3ND8sdbj6",
+	"/6kFB1+pyMclducmvmqavTDgy2eYL63dzf3PR33bRZt7Q+FWa14wXoGD5/ZudNjF3LAPDY3psPDDhBuc",
+	"ffDaTgZeP4Vg+VAnA2/+omr2siBrxuDO1zByDw46keys7Sn4vqMi7rRpGpgupt8BAAD//3gnEUNaBQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

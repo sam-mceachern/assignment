@@ -41,6 +41,10 @@ components:
                 type: string
               purchaseAmount:
                 type: number
+            required:
+              - description
+              - transactionDate
+              - purchaseAmount
   responses:
     storeTransactionResponse:
       description: Example response
@@ -57,6 +61,11 @@ components:
                 type: string
               purchaseAmount:
                 type: number
+            required:
+              - id
+              - description
+              - transactionDate
+              - purchaseAmount
     errorResponse:
       description: Example response
       content:

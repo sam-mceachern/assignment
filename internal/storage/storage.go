@@ -7,6 +7,6 @@ import (
 )
 
 type Storage interface {
-	StoreTransaction(context.Context, models.Transaction) error
-	GetTransactionByID(context.Context, string) (*models.Transaction, error)
+	StoreTransaction(context.Context, models.Transaction) (models.Transaction, error)
+	GetTransactionByID(context.Context, string) (models.Transaction, error)
 }
