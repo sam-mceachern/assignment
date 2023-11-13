@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Client is an implementation of storage.Storage, providing an in memory implementation
 type Client struct {
 	storage map[string][]byte
 }

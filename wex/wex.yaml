@@ -2,8 +2,6 @@ openapi: 3.1.0
 info:
   title: wex
   version: '1.0'
-servers:
-  - url: 'http://localhost:3000'
 paths:
   /storeTransaction:
     post:
@@ -42,10 +40,13 @@ components:
           type: string
         description:
           type: string
+          minLength: 1
         transactionDate:
           type: string
+          format: date-time
         purchaseAmount:
           type: number
+          minimum: 0
       required:
         - ID
         - description
@@ -60,10 +61,13 @@ components:
             properties:
               description:
                 type: string
+                minLength: 1
               transactionDate:
                 type: string
+                format: date-time
               purchaseAmount:
                 type: number
+                minimum: 0
             required:
               - description
               - transactionDate
