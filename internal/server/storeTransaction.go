@@ -38,7 +38,7 @@ func (s *Server) PostStoreTransaction(ctx echo.Context) error {
 }
 
 func StoreTransactionRequestToTransaction(req wex.StoreTransactionRequest) (models.Transaction, error) {
-	transactionDate, err := time.Parse(time.RFC3339, req.TransactionDate)
+	transactionDate, err := time.Parse(time.DateOnly, req.TransactionDate)
 	if err != nil {
 		return models.Transaction{}, fmt.Errorf("failed to parse transaction date: %v", err)
 	}

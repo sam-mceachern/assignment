@@ -41,9 +41,10 @@ components:
         description:
           type: string
           minLength: 1
+          maxLength: 50
         transactionDate:
           type: string
-          format: date-time
+          format: date
         purchaseAmount:
           type: number
           minimum: 0
@@ -62,9 +63,10 @@ components:
               description:
                 type: string
                 minLength: 1
+                maxLength: 50
               transactionDate:
                 type: string
-                format: date-time
+                format: date
               purchaseAmount:
                 type: number
                 minimum: 0

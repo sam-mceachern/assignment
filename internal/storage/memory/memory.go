@@ -35,7 +35,10 @@ func (c *Client) StoreTransaction(ctx context.Context, transaction models.Transa
 }
 
 func (c *Client) GetTransactionByID(ctx context.Context, id string) (models.Transaction, error) {
-	data := c.storage[id]
+	data, ok := c.storage[id]
+	if !ok {
+		return models.Transaction{}, models.ErrCouldNotFindResult
+	}
 
 	var transaction models.Transaction
 	err := json.Unmarshal(data, &transaction)
