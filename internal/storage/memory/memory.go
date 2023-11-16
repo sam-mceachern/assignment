@@ -26,7 +26,7 @@ func (c *Client) StoreTransaction(ctx context.Context, transaction models.Transa
 
 	data, err := json.Marshal(transaction)
 	if err != nil {
-		return models.Transaction{}, fmt.Errorf("failed to marshal transaction to json: %v", err)
+		return models.Transaction{}, fmt.Errorf("failed to marshal transaction to json: %w", err)
 	}
 
 	c.storage[id] = data
@@ -43,7 +43,7 @@ func (c *Client) GetTransactionByID(ctx context.Context, id string) (models.Tran
 	var transaction models.Transaction
 	err := json.Unmarshal(data, &transaction)
 	if err != nil {
-		return models.Transaction{}, fmt.Errorf("failed to unmarshal transaction from json: %v", err)
+		return models.Transaction{}, fmt.Errorf("failed to unmarshal transaction from json: %w", err)
 	}
 
 	return transaction, nil

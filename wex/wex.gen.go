@@ -19,14 +19,15 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Transaction defines model for Transaction.
 type Transaction struct {
-	ID              string  `json:"ID"`
-	Description     string  `json:"description"`
-	PurchaseAmount  float32 `json:"purchaseAmount"`
-	TransactionDate string  `json:"transactionDate"`
+	Id                string             `json:"Id"`
+	Description       string             `json:"description"`
+	PurchaseAmountUSD float32            `json:"purchaseAmountUSD"`
+	TransactionDate   openapi_types.Date `json:"transactionDate"`
 }
 
 // ErrorResponse defines model for errorResponse.
@@ -35,33 +36,42 @@ type ErrorResponse struct {
 }
 
 // GetTransactionResponse defines model for getTransactionResponse.
-type GetTransactionResponse = Transaction
+type GetTransactionResponse struct {
+	Description                  string             `json:"description"`
+	ExchangeRate                 float32            `json:"exchangeRate"`
+	Id                           string             `json:"id"`
+	PurchaseAmountTargetCurrency float32            `json:"purchaseAmountTargetCurrency"`
+	PurchaseAmountUSD            float32            `json:"purchaseAmountUSD"`
+	TransactionDate              openapi_types.Date `json:"transactionDate"`
+}
 
 // StoreTransactionResponse defines model for storeTransactionResponse.
 type StoreTransactionResponse = Transaction
 
 // GetTransactionRequest defines model for getTransactionRequest.
 type GetTransactionRequest struct {
-	ID string `json:"ID"`
+	Id       string `json:"Id"`
+	Currency string `json:"currency"`
 }
 
 // StoreTransactionRequest defines model for storeTransactionRequest.
 type StoreTransactionRequest struct {
-	Description     string  `json:"description"`
-	PurchaseAmount  float32 `json:"purchaseAmount"`
-	TransactionDate string  `json:"transactionDate"`
+	Description       string             `json:"description"`
+	PurchaseAmountUSD float32            `json:"purchaseAmountUSD"`
+	TransactionDate   openapi_types.Date `json:"transactionDate"`
 }
 
 // PostGetTransactionJSONBody defines parameters for PostGetTransaction.
 type PostGetTransactionJSONBody struct {
-	ID string `json:"ID"`
+	Id       string `json:"Id"`
+	Currency string `json:"currency"`
 }
 
 // PostStoreTransactionJSONBody defines parameters for PostStoreTransaction.
 type PostStoreTransactionJSONBody struct {
-	Description     string  `json:"description"`
-	PurchaseAmount  float32 `json:"purchaseAmount"`
-	TransactionDate string  `json:"transactionDate"`
+	Description       string             `json:"description"`
+	PurchaseAmountUSD float32            `json:"purchaseAmountUSD"`
+	TransactionDate   openapi_types.Date `json:"transactionDate"`
 }
 
 // PostGetTransactionJSONRequestBody defines body for PostGetTransaction for application/json ContentType.
@@ -599,14 +609,15 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8RVT2/bPgz9Kj/wt6NQeet20W1DhiG3odut6EF12FqFLWoSvaUI/N0Hyi5qJ3ZXGN16",
-	"CQzqkXx8/JMDlNQE8ug5gTlAxB8tJv5EO4fZcIv8PVqfbMmO/EX/LA8leUafP20ItSutAPRdIi+2VFbY",
-	"WPkKkQJGHuJtN/LL9wHBQOLo/C10ncqJXcQdmEvBXKkHDF3fYcnQdYJKTBFflM8OUxldEOwMMQWhjWVl",
-	"E35sqO2jDxDfNtcYBcKPfDaW8c/1jXOeup/knNUih0yBfOrrwBgpXgyWv6bHE4XMsFSTzPumniZ+E/EG",
-	"DPyvH0dQ969Jj3oMudgJL/i8t02o8b8HCaQNx5O6QooXZnQ6ra/NSUj1vhJ67P68RVWvsi/bDag1S+O4",
-	"lqjjMmdWSYHzN5RZDA6/cA8KfmJMvY5vzwrhTQG9DQ4MnJ+JSUGwXGWx9HT4sprU3yXRNPd2uwMDXynx",
-	"lylWjY7u/VLHJ3dZzx/l45PwriiWww04vbA1nYL3z3Gfnp1OwYcVXrkJ+nhbnhbx2zF6hYxL/yarhFxc",
-	"9n8tpew4RpleMJcHaGMNBirmYLSuqbR1RYnNeVEU0F11vwMAAP//KIU03QEIAAA=",
+	"H4sIAAAAAAAC/9RWTW/UMBD9K2jgaDVboJfcgCJUiQPalhPi4Dqziav1B7YDWVX572icLJtPuo0iJC6r",
+	"xJ6ZzLz3ZmYfQRhljUYdPKSP4PBHiT68N5nEeJBjuHNcey6CNHrbXNOFMDqgjo/c2r0UnAySB280nXlR",
+	"oOL0ZJ2x6EIb7yaj33CwCCn44KTOoWYgSudQi8PEZc1iVtJhBuk3CtAx/86O5ub+AUWAuiYHH4zDVfPO",
+	"0AsnLdnSq+LVZ9R5KCC92jBQUh9fL9m4Ols6UXCP75Qpdfh6ex1DSC1VqSDd/PHQpbpHRx7hlPs1D0j2",
+	"O+MUD5BCRgfsCZi6+Y7DTaU0CWWM6q3RvoEBnTNu256sB+f5tUxkyXpfrtS+/+FXDneQwsvkpPSkufVJ",
+	"RyIQi+3lBR8rruweXxwhIGaGDbE2FM9TFlai4DrHbSuSkZDkdL/16b/jLsfwYdyDpziTEl5ftpK6+/na",
+	"HQDxRH1TSj+H+vFUWUD+qnKkpBpfCt11P3fw/m9z7WaZQIhyGfYUuIvSpBCk3pmIVevwCytg8BOdb2i4",
+	"vNhQKcai5lZCCm8u6IiB5aGIWCf9IRHJMM36IUqiNIgP+GJ8+NS3ZZ0dfJgTTG9NJ9M7eji6X2828+Fa",
+	"u2RmutUM3p7j3l8PNYOrBV6RhGTYbH8H8XZovQDGuT8Ni4CcnRX/Gsq6/h0AAP//2HDzReQJAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

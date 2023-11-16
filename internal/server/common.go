@@ -26,12 +26,12 @@ func getRequestStruct[T any](ctx echo.Context, router routers.Router) (T, error)
 
 	data, err := io.ReadAll(request.Body)
 	if err != nil {
-		return reqStruct, fmt.Errorf("failed to read request body: %v", err)
+		return reqStruct, fmt.Errorf("failed to read request body: %w", err)
 	}
 
 	err = json.Unmarshal(data, &reqStruct)
 	if err != nil {
-		return reqStruct, fmt.Errorf("failed to unmarshal transaction: %v", err)
+		return reqStruct, fmt.Errorf("failed to unmarshal transaction: %w", err)
 	}
 
 	return reqStruct, nil
@@ -40,7 +40,7 @@ func getRequestStruct[T any](ctx echo.Context, router routers.Router) (T, error)
 func validateRequest(ctx context.Context, req *http.Request, router routers.Router) error {
 	route, pathParams, err := router.FindRoute(req)
 	if err != nil {
-		return fmt.Errorf("failed to find router: %v", err)
+		return fmt.Errorf("failed to find router: %w", err)
 	}
 
 	// Validate request
@@ -52,7 +52,7 @@ func validateRequest(ctx context.Context, req *http.Request, router routers.Rout
 
 	err = openapi3filter.ValidateRequest(ctx, requestValidationInput)
 	if err != nil {
-		return fmt.Errorf("failed to validate request: %v", err)
+		return fmt.Errorf("failed to validate request: %w", err)
 	}
 
 	return nil
@@ -64,12 +64,12 @@ func writeResponse(w http.ResponseWriter, status int, response interface{}) erro
 	w.Header().Set("Content-Type", "application/json")
 	responseData, err := json.Marshal(response)
 	if err != nil {
-		return fmt.Errorf("failed to marshal: %v", err)
+		return fmt.Errorf("failed to marshal: %w", err)
 	}
 
 	_, err = w.Write(responseData)
 	if err != nil {
-		return fmt.Errorf("failed to write data: %v", err)
+		return fmt.Errorf("failed to write data: %w", err)
 	}
 
 	return nil
@@ -84,12 +84,12 @@ func writeErrorResponse(w http.ResponseWriter, status int, message string) error
 	}
 	errorData, err := json.Marshal(errorResponse)
 	if err != nil {
-		return fmt.Errorf("failed to marshal: %v", err)
+		return fmt.Errorf("failed to marshal: %w", err)
 	}
 
 	_, err = w.Write(errorData)
 	if err != nil {
-		return fmt.Errorf("failed to write data: %v", err)
+		return fmt.Errorf("failed to write data: %w", err)
 	}
 
 	return nil

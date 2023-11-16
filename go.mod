@@ -6,6 +6,7 @@ require (
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/google/uuid v1.4.0
 	github.com/labstack/echo/v4 v4.11.3
+	github.com/oapi-codegen/runtime v1.1.0
 	github.com/rs/zerolog v1.31.0
 )
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"example.com/internal/exchangerates/fiscaldata"
 	"example.com/internal/logic"
 	"example.com/internal/server"
 	"example.com/internal/storage/memory"
@@ -26,11 +27,12 @@ func main() {
 	}
 
 	// compose the three layers of our API
-	// 1. firstly our storage layer
+	// 1. firstly our adapets
 	storage := memory.NewClient()
+	exchangeRates := fiscaldata.NewClient()
 
 	// 2. then our logic layer
-	logicClient := logic.NewClient(storage)
+	logicClient := logic.NewClient(storage, exchangeRates)
 
 	// 3. finally our transport layer
 	server := server.NewServer(logicClient, apiRouter)
@@ -55,17 +57,17 @@ func createValidationRouter() (routers.Router, error) {
 	loader := &openapi3.Loader{Context: context.Background(), IsExternalRefsAllowed: true}
 	doc, err := loader.LoadFromFile("./wex/wex.yaml")
 	if err != nil {
-		return nil, fmt.Errorf("failed to load api file: %v", err)
+		return nil, fmt.Errorf("failed to load api file: %w", err)
 	}
 
 	err = doc.Validate(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate api spec: %v", err)
+		return nil, fmt.Errorf("failed to validate api spec: %w", err)
 	}
 
 	apirouter, err := gorillamux.NewRouter(doc)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create router: %v", err)
+		return nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
 	return apirouter, nil

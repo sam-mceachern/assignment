@@ -36,7 +36,7 @@ components:
       title: Transaction
       type: object
       properties:
-        ID:
+        Id:
           type: string
         description:
           type: string
@@ -45,14 +45,14 @@ components:
         transactionDate:
           type: string
           format: date
-        purchaseAmount:
+        purchaseAmountUSD:
           type: number
           minimum: 0
       required:
-        - ID
+        - Id
         - description
         - transactionDate
-        - purchaseAmount
+        - purchaseAmountUSD
   requestBodies:
     storeTransactionRequest:
       content:
@@ -67,23 +67,26 @@ components:
               transactionDate:
                 type: string
                 format: date
-              purchaseAmount:
+              purchaseAmountUSD:
                 type: number
                 minimum: 0
             required:
               - description
               - transactionDate
-              - purchaseAmount
+              - purchaseAmountUSD
     getTransactionRequest:
       content:
         application/json:
           schema:
             type: object
             properties:
-              ID:
+              Id:
+                type: string
+              currency:
                 type: string
             required:
-              - ID
+              - Id
+              - currency
   responses:
     errorResponse:
       description: Example response
@@ -110,4 +113,27 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Transaction'
+            type: object
+            properties:
+              id:
+                type: string
+              description:
+                type: string
+                minLength: 1
+                maxLength: 50
+              transactionDate:
+                type: string
+                format: date
+              purchaseAmountUSD:
+                type: number
+              exchangeRate:
+                type: number
+              purchaseAmountTargetCurrency:
+                type: number
+            required:
+              - id
+              - description
+              - transactionDate
+              - purchaseAmountUSD
+              - exchangeRate
+              - purchaseAmountTargetCurrency
