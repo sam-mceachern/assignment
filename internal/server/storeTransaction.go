@@ -14,6 +14,8 @@ import (
 )
 
 func (s *Server) PostStoreTransaction(ctx echo.Context) error {
+	log.Info().Msg("PostStoreTransaction")
+
 	// extract the request
 	req, err := getRequestStruct[wex.StoreTransactionRequest](ctx, s.apiRouter)
 	if err != nil {

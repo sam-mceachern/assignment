@@ -2,6 +2,7 @@ package fiscaldata
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -37,16 +38,22 @@ func (C *Client) GetExchangeRateForCountry(ctx context.Context, targetCountry st
 	endpoint = fmt.Sprintf("%s?filter=record_date:gt:%s", endpoint, oldestDate.Format(time.DateOnly))
 	endpoint = fmt.Sprintf("%s,country:eq:%s", endpoint, targetCountry)
 
-	responseBody, err := util.MakeAPICall[Data](http.MethodGet, endpoint)
+	responseData, status, err := util.MakeAPICall(http.MethodGet, endpoint, nil)
 	if err != nil {
-		return 0.0, fmt.Errorf("failed to make api call: %w", err)
+		return 0.0, fmt.Errorf("failed to make api call: '%w' got status '%d'", err, status)
 	}
 
-	if len(responseBody.Data) == 0 {
+	var data Data
+	err = json.Unmarshal(responseData, &data)
+	if err != nil {
+		return 0.0, fmt.Errorf("failed to unmarshal response '%w'", err)
+	}
+
+	if len(data.Data) == 0 {
 		return 0.0, models.ErrNoExchangeRateFound
 	}
 
-	exchangeRate, err := strconv.ParseFloat(responseBody.Data[len(responseBody.Data)-1].ExchangeRate, 64)
+	exchangeRate, err := strconv.ParseFloat(data.Data[len(data.Data)-1].ExchangeRate, 64)
 	if err != nil {
 		return 0.0, fmt.Errorf("failed unmarhsal json: %w", err)
 	}

@@ -44,6 +44,7 @@ func main() {
 	router := echo.New()
 	wex.RegisterHandlers(router, &handler)
 
+	log.Info().Msg("starting api")
 	// start the server
 	err = http.ListenAndServe("localhost:5555", router.Server.Handler)
 	if err != nil {

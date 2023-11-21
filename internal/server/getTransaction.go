@@ -13,6 +13,8 @@ import (
 )
 
 func (s *Server) PostGetTransaction(ctx echo.Context) error {
+	log.Info().Msg("PostGetTransaction")
+
 	// extract the request
 	req, err := getRequestStruct[wex.GetTransactionRequest](ctx, s.apiRouter)
 	if err != nil {
@@ -25,9 +27,11 @@ func (s *Server) PostGetTransaction(ctx echo.Context) error {
 	if err != nil {
 		log.Err(err).Msgf("failed to get transaction")
 		if errors.Is(err, models.ErrCouldNotFindResult) {
+			log.Err(err).Msgf("could not find result for: '%s'", req.Id)
 			return writeErrorResponse(ctx.Response(), http.StatusNotFound, fmt.Sprintf("could not find result for: '%s'", req.Id))
 		}
 		if errors.Is(err, models.ErrNoExchangeRateFound) {
+			log.Err(err).Msgf("could find exchange rate for: '%s'", req.Currency)
 			return writeErrorResponse(ctx.Response(), http.StatusNotFound, fmt.Sprintf("could find exchange rate for: '%s'", req.Currency))
 		}
 		return writeErrorResponse(ctx.Response(), http.StatusInternalServerError, "internal error")
