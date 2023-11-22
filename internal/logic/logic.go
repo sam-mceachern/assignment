@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"example.com/internal/exchangerates"
 	"example.com/internal/logic/models"
@@ -37,5 +38,7 @@ func (c *Client) GetTransaction(ctx context.Context, ID, country string) (models
 		return models.Transaction{}, 0, 0, fmt.Errorf("failed to get exchange rate: %w", err)
 	}
 
-	return transaction, exchangeRate, transaction.PurchaseAmount * exchangeRate, nil
+	amountTagetCurrency := math.Round(transaction.PurchaseAmount*exchangeRate*100) / 100
+
+	return transaction, exchangeRate, amountTagetCurrency, nil
 }

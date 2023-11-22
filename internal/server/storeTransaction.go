@@ -1,12 +1,10 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"example.com/internal/logic/models"
+	"example.com/util"
 	"example.com/wex"
 	"github.com/labstack/echo/v4"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -23,7 +21,7 @@ func (s *Server) PostStoreTransaction(ctx echo.Context) error {
 		return writeErrorResponse(ctx.Response(), http.StatusBadRequest, err.Error())
 	}
 
-	err = validatePurchaseAmount(req.PurchaseAmountUSD)
+	err = util.CheckNumberIsRoundedTo(req.PurchaseAmountUSD, 2)
 	if err != nil {
 		log.Err(err).Msgf("failed validate purchase amount")
 		return writeErrorResponse(ctx.Response(), http.StatusBadRequest, err.Error())
@@ -64,21 +62,4 @@ func TransactionToStoreTransactionResponse(transaction models.Transaction) wex.S
 		},
 		PurchaseAmountUSD: float32(transaction.PurchaseAmount),
 	}
-}
-
-// sadly the openapi validator is unable to check if a number is rounded to 2 decimal places.
-// this is a know issue in the library: https://github.com/getkin/kin-openapi/issues/817
-// so here we are validating this field manually
-func validatePurchaseAmount(purchaseAmount float32) error {
-	amountStr := strconv.FormatFloat(float64(purchaseAmount), 'f', -1, 32)
-	amountSplit := strings.Split(amountStr, ".")
-	if len(amountSplit) < 2 {
-		return nil
-	}
-
-	if len(amountSplit[1]) > 2 {
-		return fmt.Errorf("purchase amountUSD has too many decimal places: %d", len(amountSplit[1]))
-	}
-
-	return nil
 }

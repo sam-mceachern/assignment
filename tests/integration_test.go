@@ -92,7 +92,7 @@ var testCases = []testCase{
 		expectedResponse: wex.StoreTransactionResponse{},
 		expectError:      true,
 		expectedError: wex.ErrorResponse{
-			Description: "purchase amountUSD has too many decimal places: 6",
+			Description: "number has too many decimal places: 6",
 		},
 		exptectedStatus: http.StatusBadRequest,
 	},
@@ -190,6 +190,8 @@ func assertGetTransactionResponse(t *testing.T, test testCase, lastTransactionID
 	// these two cant be reliably compared, as exchange rates change over time
 	// assert.Equal(t, response.ExchangeRate, expectedResponse.ExchangeRate)
 	// assert.Equal(t, response.PurchaseAmountTargetCurrency, expectedResponse.PurchaseAmountTargetCurrency)
+
+	assert.NoError(t, util.CheckNumberIsRoundedTo(response.PurchaseAmountTargetCurrency, 2), test.name)
 }
 
 func assertError(t *testing.T, test testCase, errResp *wex.ErrorResponse) {

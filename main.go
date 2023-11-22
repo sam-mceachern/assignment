@@ -48,7 +48,8 @@ func main() {
 	// start the server
 	err = http.ListenAndServe("localhost:5555", router.Server.Handler)
 	if err != nil {
-		panic(err)
+		log.Err(err).Msg("failed to start server")
+		os.Exit(1)
 	}
 
 	log.Info().Msg("api stopped")
