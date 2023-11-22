@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	"example.com/internal/exchangerates/fiscaldata"
+	"example.com/internal/adapters/exchangerates/fiscaldata"
+	"example.com/internal/adapters/storage/memory"
 	"example.com/internal/logic"
 	"example.com/internal/server"
-	"example.com/internal/storage/memory"
 	"example.com/wex"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers"
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// compose the three layers of our API
-	// 1. firstly our adapets
+	// 1. firstly our adapters
 	storage := memory.NewClient()
 	exchangeRates := fiscaldata.NewClient()
 

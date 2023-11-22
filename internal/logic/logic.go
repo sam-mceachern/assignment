@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math"
 
-	"example.com/internal/exchangerates"
+	"example.com/internal/adapters/exchangerates"
+	"example.com/internal/adapters/storage"
 	"example.com/internal/logic/models"
-	"example.com/internal/storage"
 )
 
 type Client struct {
